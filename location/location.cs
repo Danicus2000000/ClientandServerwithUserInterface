@@ -23,7 +23,15 @@ namespace location
                     sw.WriteLine(args[0] + " " + args[1]);
                 }
                 sw.Flush();
-                Console.WriteLine(sr.ReadToEnd());
+                string result = sr.ReadToEnd();
+                if (args.Length == 1)
+                {
+                    Console.WriteLine(args[0] + " is " + result);
+                }
+                else if (result == "OK\r\n" && args.Length==2)
+                {
+                    Console.WriteLine(args[0] + " location changed to be " + args[1]);
+                }
             }
             else if (args.Length==0)
             {
