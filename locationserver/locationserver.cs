@@ -27,7 +27,7 @@ namespace locationserver
             }
             catch (Exception e)
             {
-                log.log(e.ToString());
+                Console.WriteLine("An error has occured!");
             }
         }
         static void Main(string[] args)
