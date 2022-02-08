@@ -6,7 +6,7 @@ namespace locationserver
 {
     class locationserver
     {
-        public void runServer()
+        public static void runServer()
         {
             TcpListener listener;
             Socket connection;
@@ -25,14 +25,14 @@ namespace locationserver
                     connection.Close();
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("An error has occured!");
             }
         }
         static void Main(string[] args)
         {
-            TcpListener server = new TcpListener(43);
+            runServer();
         }
     }
 }

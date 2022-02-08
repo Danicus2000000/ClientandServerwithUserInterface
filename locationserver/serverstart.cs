@@ -10,7 +10,7 @@ namespace locationserver
         Thread threadInitialise;
         public void threadstart()
         {
-            threadInitialise = new Thread(new ThreadStart(run);
+            threadInitialise = new Thread(new ThreadStart(run));
             threadInitialise.Start();
         }
 
