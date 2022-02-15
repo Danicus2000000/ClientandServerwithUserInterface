@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Net.Sockets;
 using System.IO;
+using System.Net;
 namespace location
 {
     class location
@@ -11,7 +12,7 @@ namespace location
             if (args.Length != 0 && args.Length<=2)
             {
                 TcpClient client = new TcpClient();
-                client.Connect("whois.net.dcs.hull.ac.uk", 43);
+                client.Connect(IPAddress.Parse("0.0.0.0"),43);
                 StreamWriter sw = new StreamWriter(client.GetStream());
                 StreamReader sr = new StreamReader(client.GetStream());
                 if (args.Length == 1)
