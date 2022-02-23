@@ -66,7 +66,7 @@ namespace location
                         default:
                             if (i != 0)
                             {
-                                if (args[i - 1] != "-h1" && args[i - 1] != "-h9" && args[i - 1] != "-h0" && args[i - 1] != "-h" && args[i - 1] != "-t" && args[i - 1] != "-p" && args[i - 1] != "-l" && args[i - 1] != "-f")
+                                if (args[i - 1] != "-h" && args[i - 1] != "-t" && args[i - 1] != "-p" && args[i - 1] != "-l" && args[i - 1] != "-f")
                                 {
                                     query += args[i] + " ";
                                 }
@@ -106,20 +106,28 @@ namespace location
                 {
                     result += sr.ReadLine();
                 }
+                //if (File.Exists(logfilelocation))
+                //{
+                //    File.Delete(logfilelocation);
+                //}
                 if (request == requestType.whois)
                 {
                     if (result != "OK\r\n")
                     {
-                        Console.WriteLine(personID + " is " + result);
+                        Console.WriteLine(personID + " is " + result+"\r\n");
+                        File.AppendAllText(logfilelocation, personID + " is " + result+"\n");
+
                     }
                     else if (result == "OK\r\n")
                     {
-                        Console.WriteLine(personID + " location changed to be " + locationID);
+                        Console.WriteLine(personID + " location changed to be " + locationID+"\r\n");
+                        File.AppendAllText(logfilelocation, personID + " location changed to be " + locationID+"\n");
                     }
                 }
                 else if (request == requestType.HTTP09 || request == requestType.HTTP10 || request == requestType.HTTP11)//HERE
                 {
-                    Console.WriteLine(result);
+                    Console.WriteLine(result+"\r\n");
+                    File.AppendAllText(logfilelocation, result+"\n");
                 }
             }
             catch (IOException) 

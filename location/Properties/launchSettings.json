@@ -2,7 +2,7 @@
   "profiles": {
     "location": {
       "commandName": "Project",
-      "commandLineArgs": "636948"
+      "commandLineArgs": "-h9 636948"
     }
   }
 }
