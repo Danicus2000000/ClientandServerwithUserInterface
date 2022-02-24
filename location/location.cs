@@ -14,6 +14,10 @@ namespace location
             HTTP10,
             HTTP11
         }
+        static void parseArgs() 
+        {
+
+        }
         static void Main(string[] args)
         {
             if (args.Length == 0)
@@ -204,6 +208,7 @@ namespace location
                     if (locationID == "")
                     {
                         result = personID + " is " + response.Split("\r\n\r\n")[1] + "\r\n";
+                        File.AppendAllText(logFileLocation, personID + " is " + response.Split("\r\n\r\n")[1] + "\n");
                     }
                     else
                     {
@@ -214,13 +219,14 @@ namespace location
                 else if (lineresponse[0] == "HTTP/0.9 200 OK" || lineresponse[0] == "HTTP/1.0 200 OK" || lineresponse[0] == "HTTP/1.1 200 OK")
                 {
                     Console.WriteLine("Error: Not Found");
+                    File.AppendAllText(logFileLocation, personID + "Error: Not Found");
                 }
                 else 
                 {
                     string trueresponse = response.Split("\r\n\r\n")[1];
                     Console.WriteLine(personID+" is "+trueresponse.Substring(0,trueresponse.Length-2));
+                    File.AppendAllText(logFileLocation, personID + " is " + trueresponse.Substring(0, trueresponse.Length - 2));
                 }
-                File.AppendAllText(logFileLocation, response + "\n");
             }
             return result;
 
