@@ -39,6 +39,7 @@ namespace locationserver
             }
             return requestType.whois;
         }
+
         private static string handleRequest(Dictionary<string, string> storedData, requestType requestType, string data)
         {
             string[] splitData = data.Split(" ");
@@ -49,7 +50,7 @@ namespace locationserver
                     {
                         try
                         {
-                            return storedData[splitData[0]] + "\r\n";
+                            return storedData[data.Replace("\r\n","")] + "\r\n";
                         }
                         catch (Exception)
                         {
@@ -59,10 +60,7 @@ namespace locationserver
                     else
                     {
                         string personID=splitData[0];
-                        splitData[0] = "";
-                        string locationID = string.Join("",splitData);
-                        Console.WriteLine(personID);
-                        Console.WriteLine(locationID);
+                        string locationID = data.Substring(personID.Length+1);
                         storedData[personID] = locationID.Replace("\r\n", "");
                         return "OK\r\n";
                     }
@@ -71,7 +69,7 @@ namespace locationserver
                     {
                         try
                         {
-                            string personID = splitData[1].Replace("\r\n", "");
+                            string personID = splitData[1].Substring(1).Replace("\r\n", "");
                             string locationID = storedData[personID];
                             return "HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n" + locationID + "\r\n";
                         }
@@ -82,12 +80,11 @@ namespace locationserver
                     }
                     else if (splitData[0] == "PUT") 
                     {
-                        string nameLocation = splitData[1].Substring(1);
-                        string personID = nameLocation.Split("\r\n\r\n")[0];
-                        splitData[0] = "";
-                        string locationID = string.Join("", splitData).Split("\r\n\r\n")[1].Replace("\r\n","");//removes all newline operators and name from the output and ensures location can have spaces in
-                        //string locationID = nameLocation.Split("\r\n\r\n")[1].Replace("\r\n", "");
+                        string personID =data.Split("\r\n\r\n")[0].Substring(5);
+                        string locationID = data.Split("\r\n\r\n")[1].Replace("\r\n","");//removes all newline operators and name from the output and ensures location can have spaces in
                         storedData[personID] = locationID;
+                        Console.WriteLine(personID);
+                        Console.WriteLine(locationID);
                         return "HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n";
                     }
                     break;
@@ -96,7 +93,7 @@ namespace locationserver
                     {
                         try
                         {
-                            string personID = splitData[1].Substring(2);
+                            string personID = splitData[1].Substring(2).Replace("\r\n","");
                             string locationID= storedData[personID];
                             return "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n" + locationID + "\r\n";
                         }
@@ -107,7 +104,7 @@ namespace locationserver
                     }
                     else if (splitData[0] == "POST") 
                     {
-                        string personID=splitData[1].Substring(1);
+                        string personID=splitData[1].Substring(1).Replace("\r\n","");
                         string locationID = data.Split("\r\n")[3];
                         storedData[personID] = locationID;
                         return "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n";
@@ -127,12 +124,11 @@ namespace locationserver
                             return "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n";
                         }
                     }
-                    else if (splitData[1] == "POST") 
+                    else if (splitData[0] == "POST") 
                     {
                         string[] dataLines = data.Split("\r\n");
-                        string[] nameAndLocation = dataLines[4].Split("&");
-                        string personID = nameAndLocation[0].Substring(5);
-                        string locationID = nameAndLocation[1].Substring(9);
+                        string personID = dataLines[4].Substring(5);
+                        string locationID = dataLines[4].Substring(5+personID.Length);
                         storedData[personID] = locationID;
                         return "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
                     }
@@ -155,9 +151,9 @@ namespace locationserver
         {
             try
             {
-                Byte[] bytes = new Byte[256];
+                Byte[] bytes = new Byte[256];//buffer for data
                 string data = "";
-                StreamReader sr = new StreamReader(request);
+                StreamReader sr = new StreamReader(request);//recieve data
                 try
                 {
                     while (!sr.EndOfStream)
@@ -172,19 +168,18 @@ namespace locationserver
                         Console.WriteLine("The request timed out!");
                     }
                 }
-                Console.WriteLine("Server recieved: \"" + data+"\"");
+                Console.WriteLine("Server recieved: \"" + data+"\"");//respond to request
                 requestType requestType= getRequestType(data);
                 StreamWriter write = new StreamWriter(request);
                 string responseMessage = handleRequest(storedData, requestType, data);
                 write.Write(responseMessage);
                 write.Flush();
-                Console.WriteLine("server sent: \"" + responseMessage + "\"");
+                Console.WriteLine("server sent: \"" + responseMessage + "\"");//output to server console
             }
-            catch(IOException)
+            catch(IOException)//if timeout occurs
             {
                 Console.WriteLine("The thread timed out!");
             }
-            //threadgen.threadstart(socketStream);
         }
     }
 }

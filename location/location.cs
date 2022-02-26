@@ -16,7 +16,7 @@ namespace location
         }
         private static requestType request = requestType.whois;//all changable variable used throughout names are self explanitory
         private static string host = "whois.net.dcs.hull.ac.uk";
-        private static int timeout = 1000;
+        private static int timeout = 3000;
         private static int port = 43;
         private static string personID = "";
         private static string locationID = "";

@@ -28,8 +28,8 @@ namespace locationserver
                         connection = listener.AcceptSocket();
                         Console.WriteLine("Conenction Recieved");
                         socketStream = new NetworkStream(connection);
-                        socketStream.ReadTimeout = 1000;
-                        socketStream.WriteTimeout = 1000;
+                        socketStream.ReadTimeout = 2000;
+                        socketStream.WriteTimeout = 2000;
                         threadgen.run(socketStream, storeddata);
                         socketStream.Close();
                         connection.Close();
