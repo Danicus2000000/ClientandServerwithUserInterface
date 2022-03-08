@@ -33,7 +33,7 @@ namespace locationserver
             {
                 return requestType.HTTP10;
             }
-            else if(requestlines[0].Contains("GET") || requestlines[0].Contains("PUT")) 
+            else if(requestlines[0].Contains("GET /") || requestlines[0].Contains("PUT /"))
             {
                 return requestType.HTTP09;
             }
@@ -42,10 +42,12 @@ namespace locationserver
 
         private static string handleRequest(Dictionary<string, string> storedData, requestType requestType, string data)
         {
+            data = data.Replace("  ", " ");
             string[] splitData = data.Split(" ");
             switch (requestType) 
             {
                 case requestType.whois:
+                    Console.WriteLine("Request Type: whois");
                     if (splitData.Length == 1)
                     {
                         try
@@ -65,6 +67,7 @@ namespace locationserver
                         return "OK\r\n";
                     }
                 case requestType.HTTP09:
+                    Console.WriteLine("Request Type: HTTP 0.9");
                     if (splitData[0] == "GET") 
                     {
                         try
@@ -83,12 +86,11 @@ namespace locationserver
                         string personID =data.Split("\r\n\r\n")[0].Substring(5);
                         string locationID = data.Split("\r\n\r\n")[1].Replace("\r\n","");//removes all newline operators and name from the output and ensures location can have spaces in
                         storedData[personID] = locationID;
-                        Console.WriteLine(personID);
-                        Console.WriteLine(locationID);
                         return "HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n";
                     }
                     break;
                 case requestType.HTTP10:
+                    Console.WriteLine("Request Type: HTTP 1.0");
                     if (splitData[0] == "GET") 
                     {
                         try
@@ -111,7 +113,8 @@ namespace locationserver
                     }
                     break;
                 case requestType.HTTP11:
-                    if(splitData[0] == "GET") 
+                    Console.WriteLine("Request Type: HTTP 1.1");
+                    if (splitData[0] == "GET") 
                     {
                         try
                         {
@@ -136,9 +139,9 @@ namespace locationserver
             }
             return "";
         }
-        public void threadstart(NetworkStream request)
+        public void threadstart(NetworkStream request,Dictionary<string,string> storedData)
         {
-            //threadInitialise = new Thread(new ThreadStart(run));
+            //threadInitialise = new Thread(() => run(request,storedData));
             //threadInitialise.Start();
         }
 

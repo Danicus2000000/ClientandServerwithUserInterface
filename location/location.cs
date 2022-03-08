@@ -68,9 +68,9 @@ namespace location
                                     {
                                         personID = args[i];
                                     }
-                                    else if (locationID == "")//if location id is empty fill it
+                                    else//if location id is empty fill it
                                     {
-                                        locationID = args[i];
+                                        locationID += args[i]+" ";
                                     }
                                 }
                             }
@@ -80,13 +80,17 @@ namespace location
                                 {
                                     personID = args[i];
                                 }
-                                else if (locationID == "")//if location id is empty fill it
+                                else//if location id is empty fill it
                                 {
-                                    locationID = args[i];
+                                    locationID += args[i]+" ";
                                 }
                             }
                             break;
                     }
+                }
+                if (locationID!="") 
+                {
+                    locationID = locationID.Substring(0, locationID.Length-1);
                 }
             }
             catch (Exception)//Exceptions can only be caused by invalid argument use so the program outputs an error and exits
