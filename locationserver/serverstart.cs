@@ -178,7 +178,7 @@ namespace locationserver
                 write.Dispose();
                 Console.WriteLine("server sent: \"" + responseMessage + "\"");//output to server console
             }
-            catch (IOException)//if timeout occurs
+            catch (Exception)//if timeout occurs
             {
                 Console.WriteLine("The thread timed out!");
             }
