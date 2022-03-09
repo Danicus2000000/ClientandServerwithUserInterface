@@ -13,27 +13,19 @@ namespace locationserver
         {
 
             TcpListener listener;
-            Socket connection;
-            NetworkStream socketStream;
             Dictionary<string, string> storeddata = new Dictionary<string, string>();
-            serverstart threadgen = new serverstart();
             while (true)
             {
                 try
                 {
-                    listener = new TcpListener(43);
+                    listener = new TcpListener(IPAddress.Any,43);
                     listener.Start();
                     while (true)
                     {
-                        connection = listener.AcceptSocket();
-                        Console.WriteLine("Conenction Recieved");
-                        socketStream = new NetworkStream(connection);
-                        socketStream.ReadTimeout = 2000;
-                        socketStream.WriteTimeout = 2000;
-                        threadgen.run(socketStream, storeddata);
-                        socketStream.Close();
-                        connection.Close();
-                        Console.WriteLine("Connection Disposed");
+                        Socket connection = listener.AcceptSocket();
+                        serverstart threadgen = new serverstart();
+                        Thread threadInitialise = new Thread(() => threadgen.run(connection,storeddata));
+                        threadInitialise.Start();
                     }
                 }
                 catch

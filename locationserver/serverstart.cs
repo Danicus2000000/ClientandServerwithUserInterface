@@ -9,7 +9,6 @@ namespace locationserver
 {
     class serverstart
     {
-        private static Thread threadInitialise;
         enum requestType//the enum used to represent which protocol is in use
         {
             whois,
@@ -139,27 +138,25 @@ namespace locationserver
             }
             return "";
         }
-        public void threadstart(NetworkStream request,Dictionary<string,string> storedData)
-        {
-            //threadInitialise = new Thread(() => run(request,storedData));
-            //threadInitialise.Start();
-        }
-
         /// <summary>
         /// Retrieves and Runs the request
         /// </summary>
         /// <param name="request">The network stream containing the request</param>
         /// <param name="storeddata">The Dictionary being used to store data</param>
-        public void run(NetworkStream request,Dictionary<string,string> storedData) 
+        public void run(Socket socket,Dictionary<string,string> storedData) 
         {
+            NetworkStream socketStream = new NetworkStream(socket);
+            Console.WriteLine("Connection Recieved");
             try
             {
+                socketStream.ReadTimeout = 2000;
+                socketStream.WriteTimeout = 2000;
                 Byte[] bytes = new Byte[256];//buffer for data
                 string data = "";
-                StreamReader sr = new StreamReader(request);//recieve data
+                StreamReader sr = new StreamReader(socketStream);//recieve data
                 try
                 {
-                    while (!sr.EndOfStream)
+                    while (sr.Peek()>=0)
                     {
                         data += (char)sr.Read();
                     }
@@ -171,18 +168,27 @@ namespace locationserver
                         Console.WriteLine("The request timed out!");
                     }
                 }
-                Console.WriteLine("Server recieved: \"" + data+"\"");//respond to request
-                requestType requestType= getRequestType(data);
-                StreamWriter write = new StreamWriter(request);
+                Console.WriteLine("Server recieved: \"" + data + "\"");//respond to request
+                requestType requestType = getRequestType(data);
+                StreamWriter write = new StreamWriter(socketStream);
                 string responseMessage = handleRequest(storedData, requestType, data);
                 write.Write(responseMessage);
                 write.Flush();
+                sr.Dispose();
+                write.Dispose();
                 Console.WriteLine("server sent: \"" + responseMessage + "\"");//output to server console
             }
-            catch(IOException)//if timeout occurs
+            catch (IOException)//if timeout occurs
             {
                 Console.WriteLine("The thread timed out!");
             }
+            finally
+            {
+                socketStream.Close();
+                socket.Close();
+                Console.WriteLine("Connection Disposed");
+            }
+
         }
     }
 }
