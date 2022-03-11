@@ -39,7 +39,6 @@ namespace locationserver
         private static string handleRequest(Dictionary<string, string> storedData, requestType requestType, string data)
         {
             data = data.Replace("  ", " ");
-            data = data.Replace("\"", "");
             string[] splitData = data.Split(" ");
             switch (requestType) 
             {

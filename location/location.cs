@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Threading;
 using System.Net.Sockets;
 using System.IO;
-using System.Net;
 namespace location
 {
     class location
