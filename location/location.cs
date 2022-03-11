@@ -20,8 +20,8 @@ namespace location
         private static int port = 43;
         private static string personID = "";
         private static string locationID = "";
-        private static string logFileLocation = Directory.GetCurrentDirectory() + "\\log.txt";
-        private static string serverDatabaseLocation = Directory.GetCurrentDirectory() + "\\locations.txt";
+        private static string logFileLocation = "";
+        private static string serverDatabaseLocation = "";
 
         /// <summary>
         /// Parses any arguments given to fill out required data
@@ -107,13 +107,19 @@ namespace location
         {
             try
             {
-                if (!File.Exists(logFileLocation))//if the file does not exist at location attempt to create it
+                if (logFileLocation != "")
                 {
-                    File.Create(logFileLocation);
+                    if (!File.Exists(logFileLocation))//if the file does not exist at location attempt to create it
+                    {
+                        File.Create(logFileLocation);
+                    }
                 }
-                else if (!File.Exists(serverDatabaseLocation))
+                if (serverDatabaseLocation != "") 
                 {
-                    File.Create(serverDatabaseLocation);
+                    if (!File.Exists(serverDatabaseLocation))
+                    {
+                        File.Create(serverDatabaseLocation);
+                    }
                 }
             }
             catch (Exception)//if the creation fails the path is invalid
@@ -239,7 +245,10 @@ namespace location
                     result=personID + " is " + trueresponse.Substring(0, trueresponse.Length - 2);//structure in that style
                 }
             }
-            File.AppendAllText(logFileLocation, result);//log result
+            if (logFileLocation != "")
+            {
+                File.AppendAllText(logFileLocation, result);//log result
+            }
             return result;//return result to be outputted by main program
 
         }

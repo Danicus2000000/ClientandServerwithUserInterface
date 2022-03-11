@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Net.Sockets;
 using System.IO;
 
@@ -23,16 +21,15 @@ namespace locationserver
         /// <returns>The Type of request to be handled</returns>
         private static requestType getRequestType(string request) 
         {
-            string[] requestlines = request.Split("\r\n");
-            if (requestlines[0].Contains("HTTP/1.1")) 
+            if (request.Contains("HTTP/1.1") && (request.Contains("GET /?name=") || request.Contains("POST / HTTP/1.1\r\nHost:"))) 
             {
                 return requestType.HTTP11;
             }
-            else if (requestlines[0].Contains("HTTP/1.0")) 
+            else if (request.Contains("HTTP/1.0") && (request.Contains("GET /?") || request.Contains("POST /"))) 
             {
                 return requestType.HTTP10;
             }
-            else if(requestlines[0].Contains("GET /") || requestlines[0].Contains("PUT /"))
+            else if((request.Contains("GET /") || (request.Contains("PUT /") && request.Contains("\r\n\r\n"))) && !request.Contains("GET /?"))
             {
                 return requestType.HTTP09;
             }
@@ -42,6 +39,7 @@ namespace locationserver
         private static string handleRequest(Dictionary<string, string> storedData, requestType requestType, string data)
         {
             data = data.Replace("  ", " ");
+            data = data.Replace("\"", "");
             string[] splitData = data.Split(" ");
             switch (requestType) 
             {
@@ -129,8 +127,8 @@ namespace locationserver
                     else if (splitData[0] == "POST") 
                     {
                         string[] dataLines = data.Split("\r\n");
-                        string personID = dataLines[4].Substring(5);
-                        string locationID = dataLines[4].Substring(5+personID.Length);
+                        string personID = dataLines[4].Substring(5).Split("&")[0];
+                        string locationID = dataLines[4].Substring(15+personID.Length);
                         storedData[personID] = locationID;
                         return "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
                     }

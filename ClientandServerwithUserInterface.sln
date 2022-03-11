@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32210.238
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31624.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "location", "location\location.csproj", "{3B02E048-C9FA-41AD-B00A-ED054B6D0E63}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "locationserver", "locationserver\locationserver.csproj", "{49438CBA-515D-4F9E-8D05-F9C16DC2C3F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "locationGUI", "locationGUI\locationGUI.csproj", "{2BE67E15-D0BD-4C14-B1FC-DA39E7D81BB2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "locationserverGUI", "locationserverGUI\locationserverGUI.csproj", "{FCFF2A33-05DB-455A-AAE0-6CDC70608CF1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{49438CBA-515D-4F9E-8D05-F9C16DC2C3F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49438CBA-515D-4F9E-8D05-F9C16DC2C3F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49438CBA-515D-4F9E-8D05-F9C16DC2C3F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BE67E15-D0BD-4C14-B1FC-DA39E7D81BB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BE67E15-D0BD-4C14-B1FC-DA39E7D81BB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BE67E15-D0BD-4C14-B1FC-DA39E7D81BB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BE67E15-D0BD-4C14-B1FC-DA39E7D81BB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCFF2A33-05DB-455A-AAE0-6CDC70608CF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCFF2A33-05DB-455A-AAE0-6CDC70608CF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCFF2A33-05DB-455A-AAE0-6CDC70608CF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCFF2A33-05DB-455A-AAE0-6CDC70608CF1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
