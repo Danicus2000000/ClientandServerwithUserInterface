@@ -217,10 +217,10 @@ namespace location
                 else//if it is a modify request
                 {
                     result = personID + " location changed to be " + locationID + "\r\n";//structure in that style
-                    if (personID == "GET" && locationID == "/636948")
-                    {
-                        result = "Error: Not Found";
-                    }
+                    //if (personID == "GET" && locationID == "/636948") Lab 4 issue
+                    //{
+                    //    result = "Error: Not Found";
+                    //}
                 }
             }
             else//if it is a HTTP style request
