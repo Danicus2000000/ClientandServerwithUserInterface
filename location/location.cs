@@ -18,8 +18,7 @@ namespace location
         private static int port = 43;
         private static string personID = "";
         private static string locationID = "";
-        private static string logFileLocation = "";
-        private static string serverDatabaseLocation = "";
+        private static bool debugMode = false;
 
         /// <summary>
         /// Parses any arguments given to fill out required data
@@ -51,16 +50,13 @@ namespace location
                         case "-p"://if alternate port is specified
                             port = int.Parse(args[i + 1]);
                             break;
-                        case "-l"://if alternate log file is specified
-                            logFileLocation = args[i + 1];
-                            break;
-                        case "-f"://if alternate server save file is specified
-                            serverDatabaseLocation = args[i + 1];
+                        case "-d":
+                            debugMode = true;
                             break;
                         default://all that remains in a valid string is the name and location
                             if (i != 0)//if this argument is not the first
                             {
-                                if (args[i - 1] != "-h" && args[i - 1] != "-t" && args[i - 1] != "-p" && args[i - 1] != "-l" && args[i - 1] != "-f")//check its predecessor does not require this as data
+                                if (args[i - 1] != "-h" && args[i - 1] != "-t" && args[i - 1] != "-p")//check its predecessor does not require this as data
                                 {
                                     if (personID == "")//if person id is empty fill it
                                     {
@@ -97,36 +93,6 @@ namespace location
                 Environment.Exit(-69);
             }
         }
-
-        /// <summary>
-        /// Checks to ensure that the log file and save file for interal server details are pointed at an accessable location
-        /// </summary>
-        static void validateFileLocations()
-        {
-            try
-            {
-                if (logFileLocation != "")
-                {
-                    if (!File.Exists(logFileLocation))//if the file does not exist at location attempt to create it
-                    {
-                        File.Create(logFileLocation);
-                    }
-                }
-                if (serverDatabaseLocation != "") 
-                {
-                    if (!File.Exists(serverDatabaseLocation))
-                    {
-                        File.Create(serverDatabaseLocation);
-                    }
-                }
-            }
-            catch (Exception)//if the creation fails the path is invalid
-            {
-                Console.WriteLine("The selected path for the source or log file was invalid or inaccessable");
-                Environment.Exit(-69);
-            }
-        }
-
         /// <summary>
         /// Takes in the context of the request and returns it in a format the server will be able to manage
         /// </summary>
@@ -187,7 +153,11 @@ namespace location
             StreamWriter sw = new StreamWriter(client.GetStream());
             sw.Write(requestFullFormat);
             sw.Flush();//writes the request to the server and then sends it
-
+            if (debugMode)//if debug show full input
+            {
+                Console.WriteLine("Request sent: "+requestFullFormat.Replace("\r","\\r").Replace("\n","\\n"));
+                Console.WriteLine("Request Format: " + request.ToString());
+            }
             StreamReader sr = new StreamReader(client.GetStream());//Get the response from the server
             string response = "";
             try
@@ -205,7 +175,11 @@ namespace location
                     Environment.Exit(-69);
                 }
             }
-
+            if (debugMode)//if debug show true output
+            {
+                Console.WriteLine("True Request response: "+response.Replace("\r","\\r").Replace("\n","\\n"));
+                Console.WriteLine();
+            }
             string result = "";
             if (request == requestType.whois)//if we are dealing with a whois request
             {
@@ -247,10 +221,6 @@ namespace location
                     result=personID + " is " + trueresponse.Substring(0, trueresponse.Length - 2);//structure in that style
                 }
             }
-            if (logFileLocation != "")
-            {
-                File.AppendAllText(logFileLocation, result);//log result
-            }
             return result;//return result to be outputted by main program
 
         }
@@ -266,7 +236,6 @@ namespace location
                 }
             }
             parseArgs(args);//parse the arguments given
-            validateFileLocations();//checks file locations are valid
             string requestFullFormat = formatRequest();//build requests
             try
             {

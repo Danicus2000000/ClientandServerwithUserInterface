@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.IO;
+using System.Threading;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace locationserver
 {
@@ -13,6 +16,17 @@ namespace locationserver
             HTTP09,
             HTTP10,
             HTTP11
+        }
+        private static string logFileLocation = "";
+        private static async Task writeLogFile(string contents) 
+        {
+            using (FileStream fileAppend = File.Open(logFileLocation, FileMode.Append))
+            {
+                using (StreamWriter output = new StreamWriter(fileAppend))
+                {
+                    await output.WriteLineAsync(contents);
+                }
+            }
         }
         /// <summary>
         /// Using the context of the request the type of request is figured out
@@ -138,10 +152,13 @@ namespace locationserver
         /// <summary>
         /// Retrieves and Runs the request
         /// </summary>
-        /// <param name="request">The network stream containing the request</param>
-        /// <param name="storeddata">The Dictionary being used to store data</param>
-        public void run(Socket socket,Dictionary<string,string> storedData) 
+        /// <param name="socket">The network socket being used for the request</param>
+        /// <param name="storedData">The Dictionary being used to store data</param>
+        /// <param name="log">The log file being used to log server use</param>
+        /// <param name="database">The database being used for storedata</param>
+        public void run(Socket socket,Dictionary<string,string> storedData, string log) 
         {
+            logFileLocation = log;
             NetworkStream socketStream = new NetworkStream(socket);
             Console.WriteLine("Connection Recieved");
             try
@@ -165,7 +182,7 @@ namespace locationserver
                         Console.WriteLine("The request timed out!");
                     }
                 }
-                Console.WriteLine("Server recieved: \"" + data + "\"");//respond to request
+                Console.WriteLine("Server recieved: \"" + data.Replace("\r","\\r").Replace("\n","\\n") + "\"");//respond to request
                 requestType requestType = getRequestType(data);
                 StreamWriter write = new StreamWriter(socketStream);
                 string responseMessage = handleRequest(storedData, requestType, data);
@@ -173,7 +190,20 @@ namespace locationserver
                 write.Flush();
                 sr.Dispose();
                 write.Dispose();
-                Console.WriteLine("server sent: \"" + responseMessage + "\"");//output to server console
+                Console.WriteLine("server sent: \"" + responseMessage.Replace("\r","\\r").Replace("\n","\\n") + "\"");//output to server console
+                ReaderWriterLockSlim unlock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+                unlock.EnterWriteLock();
+                try 
+                {
+                    string formatData = data.Replace("\n", "\\n").Replace("\r", "\\r");
+                    string formatResponse= responseMessage.Replace("\n", "\\n").Replace("\r", "\\r");
+                    string toWrite = (socket.RemoteEndPoint as IPEndPoint).Address.ToString() + " - - [" + DateTime.Now + "] \""+formatData+"\" "+formatResponse;
+                    writeLogFile(toWrite);
+                }
+                catch (Exception) 
+                {
+                    Console.WriteLine("File was already in use!");
+                }
             }
             catch (Exception)//if timeout occurs
             {
