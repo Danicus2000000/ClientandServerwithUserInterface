@@ -5,7 +5,6 @@ using System.IO;
 using System.Threading;
 using System.Net;
 using System.Threading.Tasks;
-
 namespace locationserver
 {
     class serverstart
@@ -20,13 +19,7 @@ namespace locationserver
         private static string logFileLocation = "";
         private static async Task writeLogFile(string contents) 
         {
-            using (FileStream fileAppend = File.Open(logFileLocation, FileMode.Append))
-            {
-                using (StreamWriter output = new StreamWriter(fileAppend))
-                {
-                    await output.WriteLineAsync(contents);
-                }
-            }
+
         }
         /// <summary>
         /// Using the context of the request the type of request is figured out
@@ -156,15 +149,16 @@ namespace locationserver
         /// <param name="storedData">The Dictionary being used to store data</param>
         /// <param name="log">The log file being used to log server use</param>
         /// <param name="database">The database being used for storedata</param>
-        public void run(Socket socket,Dictionary<string,string> storedData, string log) 
+        /// <param name="timeout">The timeout to be used</param>
+        public void run(Socket socket,Dictionary<string,string> storedData, string log, int timeout,List<string> loglist) 
         {
             logFileLocation = log;
             NetworkStream socketStream = new NetworkStream(socket);
             Console.WriteLine("Connection Recieved");
             try
             {
-                socketStream.ReadTimeout = 2000;
-                socketStream.WriteTimeout = 2000;
+                socketStream.ReadTimeout = timeout;
+                socketStream.WriteTimeout = timeout;
                 Byte[] bytes = new Byte[256];//buffer for data
                 string data = "";
                 StreamReader sr = new StreamReader(socketStream);//recieve data
@@ -191,19 +185,23 @@ namespace locationserver
                 sr.Dispose();
                 write.Dispose();
                 Console.WriteLine("server sent: \"" + responseMessage.Replace("\r","\\r").Replace("\n","\\n") + "\"");//output to server console
-                ReaderWriterLockSlim unlock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
-                unlock.EnterWriteLock();
-                try 
-                {
-                    string formatData = data.Replace("\n", "\\n").Replace("\r", "\\r");
-                    string formatResponse= responseMessage.Replace("\n", "\\n").Replace("\r", "\\r");
-                    string toWrite = (socket.RemoteEndPoint as IPEndPoint).Address.ToString() + " - - [" + DateTime.Now + "] \""+formatData+"\" "+formatResponse;
-                    writeLogFile(toWrite);
-                }
-                catch (Exception) 
-                {
-                    Console.WriteLine("File was already in use!");
-                }
+                string formatData = data.Replace("\n", "\\n").Replace("\r", "\\r");
+                string formatResponse = responseMessage.Replace("\n", "\\n").Replace("\r", "\\r");
+                loglist.Add((socket.RemoteEndPoint as IPEndPoint).Address.ToString() + " - - [" + DateTime.Now + "] \"" + formatData + "\" " + formatResponse);//data to write
+                //try 
+                //{
+                //    using (FileStream fileAppend = File.Open(logFileLocation, FileMode.Append))//write to file
+                //    {
+                //        using (StreamWriter output = new StreamWriter(fileAppend))
+                //        {
+                //            output.WriteLine(toWrite);
+                //        }
+                //    }
+                //}
+                //catch (Exception) 
+                //{
+                //    Console.WriteLine("File was already in use!");
+                //}
             }
             catch (Exception)//if timeout occurs
             {

@@ -10,7 +10,9 @@ namespace locationserver
     {
         private static string logFileLocation = Directory.GetCurrentDirectory()+"\\logfile.txt";
         private static string serverDatabaseLocation = "";
-
+        private static int timeout = 2000;
+        private static Dictionary<string, string> storeddata = new Dictionary<string, string>();
+        private static List<string> logDataToWrite=new List<string>();
         /// <summary>
         /// Parses any arguments given to fill out required data
         /// </summary>
@@ -28,6 +30,9 @@ namespace locationserver
                             break;
                         case "-f":
                             serverDatabaseLocation = args[i + 1];
+                            break;
+                        case "-t":
+                            timeout = Convert.ToInt32(args[i + 1]);
                             break;
                     }
                 }
@@ -74,7 +79,6 @@ namespace locationserver
         {
             validateFileLocations();
             TcpListener listener;
-            Dictionary<string, string> storeddata = new Dictionary<string, string>();
             if (serverDatabaseLocation != "")//reads in any available data to the datastore
             {
                 try
@@ -102,8 +106,9 @@ namespace locationserver
                     {
                         Socket connection = listener.AcceptSocket();
                         serverstart threadgen = new serverstart();
-                        Thread threadInitialise = new Thread(() => threadgen.run(connection,storeddata,logFileLocation));
+                        Thread threadInitialise = new Thread(() => threadgen.run(connection,storeddata,logFileLocation,timeout,logDataToWrite));
                         threadInitialise.Start();
+                        
                     }
                 }
                 catch
@@ -114,8 +119,32 @@ namespace locationserver
         }
         static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.ProcessExit+=new EventHandler(OnProcessExit);
             parseArgs(args);
             runServer();
+        }
+        static void OnProcessExit(object sender,EventArgs e) 
+        {
+            if (serverDatabaseLocation != "") 
+            {
+                string result = "";
+                foreach (KeyValuePair<string, string> set in storeddata)
+                {
+                    result+=set.Key + "!," + set.Value + "\n";
+                }
+                result=result.Substring(0,result.Length-1);
+                File.WriteAllText(serverDatabaseLocation,result);
+            }
+            if(logFileLocation != "") 
+            {
+                string result = "";
+                foreach(string write in logDataToWrite) 
+                {
+                    result+=write+"\n";
+                }
+                result=result.Substring(0,result.Length-1);
+                File.AppendAllText(logFileLocation,result);
+            }
         }
     }
 }

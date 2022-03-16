@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "locationserver": {
+      "commandName": "Project",
+      "commandLineArgs": "-f C:\\Users\\dan-a\\Downloads\\ClientandServerwithUserInterface\\locationserver\\bin\\Debug\\netcoreapp3.1\\test.txt"
+    }
+  }
+}
