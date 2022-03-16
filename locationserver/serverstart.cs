@@ -5,6 +5,8 @@ using System.IO;
 using System.Threading;
 using System.Net;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
+
 namespace locationserver
 {
     class serverstart
@@ -150,7 +152,7 @@ namespace locationserver
         /// <param name="log">The log file being used to log server use</param>
         /// <param name="database">The database being used for storedata</param>
         /// <param name="timeout">The timeout to be used</param>
-        public void run(Socket socket,Dictionary<string,string> storedData, string log, int timeout,List<string> loglist) 
+        public void run(Socket socket,Dictionary<string,string> storedData, string log, int timeout,ConcurrentQueue<string> loglist) 
         {
             logFileLocation = log;
             NetworkStream socketStream = new NetworkStream(socket);
@@ -187,21 +189,7 @@ namespace locationserver
                 Console.WriteLine("server sent: \"" + responseMessage.Replace("\r","\\r").Replace("\n","\\n") + "\"");//output to server console
                 string formatData = data.Replace("\n", "\\n").Replace("\r", "\\r");
                 string formatResponse = responseMessage.Replace("\n", "\\n").Replace("\r", "\\r");
-                loglist.Add((socket.RemoteEndPoint as IPEndPoint).Address.ToString() + " - - [" + DateTime.Now + "] \"" + formatData + "\" " + formatResponse);//data to write
-                //try 
-                //{
-                //    using (FileStream fileAppend = File.Open(logFileLocation, FileMode.Append))//write to file
-                //    {
-                //        using (StreamWriter output = new StreamWriter(fileAppend))
-                //        {
-                //            output.WriteLine(toWrite);
-                //        }
-                //    }
-                //}
-                //catch (Exception) 
-                //{
-                //    Console.WriteLine("File was already in use!");
-                //}
+                loglist.Enqueue((socket.RemoteEndPoint as IPEndPoint).Address.ToString() + " - - [" + DateTime.Now + "] \"" + formatData + "\" " + formatResponse);//data to write
             }
             catch (Exception)//if timeout occurs
             {

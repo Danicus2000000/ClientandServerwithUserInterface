@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Net;
 using System.Collections.Generic;
 using System.IO;
+using System.Collections.Concurrent;
+
 namespace locationserver
 {
     class locationserver
@@ -12,7 +14,7 @@ namespace locationserver
         private static string serverDatabaseLocation = "";
         private static int timeout = 2000;
         private static Dictionary<string, string> storeddata = new Dictionary<string, string>();
-        private static List<string> logDataToWrite=new List<string>();
+        private static ConcurrentQueue<string> logDataToWrite= new ConcurrentQueue<string>();
         /// <summary>
         /// Parses any arguments given to fill out required data
         /// </summary>
