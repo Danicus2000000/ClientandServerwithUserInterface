@@ -88,8 +88,8 @@ namespace locationserver
                     string[] dataToStore = File.ReadAllLines(serverDatabaseLocation);
                     foreach (string add in dataToStore)
                     {
-                        string[] parts = add.Split("!,");
-                        storeddata[parts[0]] = parts[1];
+                        string[] parts = add.Split(" ");
+                        storeddata[parts[0]] = add.Substring(parts[0].Length,add.Length);
                     }
                 }
                 catch (Exception) 
@@ -127,7 +127,7 @@ namespace locationserver
         }
         static void OnProcessExit(object sender,EventArgs e) 
         {
-            if (serverDatabaseLocation != "") 
+            if (serverDatabaseLocation != "" && storeddata.Count!=0) 
             {
                 string result = "";
                 foreach (KeyValuePair<string, string> set in storeddata)
@@ -137,7 +137,7 @@ namespace locationserver
                 result=result.Substring(0,result.Length-1);
                 File.WriteAllText(serverDatabaseLocation,result);
             }
-            if(logFileLocation != "") 
+            if(logFileLocation != "" && logDataToWrite.Count!=0) 
             {
                 string result = "";
                 foreach(string write in logDataToWrite) 
