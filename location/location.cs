@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.IO;
+using System.Windows.Forms;
 namespace location
 {
     class location
@@ -224,12 +225,14 @@ namespace location
             return result;//return result to be outputted by main program
 
         }
-
+        [STAThread]
         static void Main(string[] args)
         {
             if (args.Length == 0)//if no arguments are given ask for them
             {
-                //make winform
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run();
                 while (args.Length == 0)
                 {
                     Console.Write("No arguments given please enter request: ");

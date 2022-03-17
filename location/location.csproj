@@ -3,6 +3,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+	  <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms">
+      <HintPath>C:\Windows\WinSxS\msil_system.windows.forms_b77a5c561934e089_10.0.19041.1_none_f1d47663d48a8243\System.Windows.Forms.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
 </Project>
