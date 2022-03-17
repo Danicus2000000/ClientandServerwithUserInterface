@@ -12,8 +12,8 @@ namespace locationserver
     {
         private static string logFileLocation = Directory.GetCurrentDirectory()+"\\logfile.txt";
         private static string serverDatabaseLocation = "";
-        private static int timeout = 2000;
-        private static Dictionary<string, string> storeddata = new Dictionary<string, string>();
+        private static int timeout = 1000;
+        private static ConcurrentDictionary<string, string> storeddata = new ConcurrentDictionary<string, string>();
         private static ConcurrentQueue<string> logDataToWrite= new ConcurrentQueue<string>();
         /// <summary>
         /// Parses any arguments given to fill out required data
@@ -85,7 +85,15 @@ namespace locationserver
             {
                 try
                 {
-                    string[] dataToStore = File.ReadAllLines(serverDatabaseLocation);
+                    //string[] dataToStore = File.ReadAllLines(serverDatabaseLocation);
+                    string[] dataToStore;
+                    using (FileStream fileAppend = File.Open(serverDatabaseLocation, FileMode.Open))//write to file
+                    {
+                        using (StreamReader output = new StreamReader(fileAppend))
+                        {
+                            dataToStore = output.ReadToEnd().Split("\n");
+                        }
+                    }
                     foreach (string add in dataToStore)
                     {
                         if (add != "")
@@ -100,11 +108,17 @@ namespace locationserver
                         }
                     }
                 }
-                catch (Exception) 
+                catch (Exception e) 
                 {
                     Console.WriteLine("Database file was not formated correctly, using null dataset instead");
-                    storeddata = new Dictionary<string, string>();
+                    Console.WriteLine(e.Message);
+                    storeddata = new ConcurrentDictionary<string, string>();
                 }
+            }
+            if (logFileLocation != "") 
+            {
+                Thread log = new Thread(() => logStuff());
+                log.Start();
             }
             while (true)
             {
@@ -145,9 +159,32 @@ namespace locationserver
                 result=result.Substring(0,result.Length-1);
                 File.WriteAllText(serverDatabaseLocation,result);
             }
-            if(logFileLocation != "" && logDataToWrite.Count!=0) 
+        }
+        static void logStuff() 
+        {
+            while (true) 
             {
-                File.AppendAllLines(logFileLocation, logDataToWrite);
+                if (logDataToWrite.Count != 0) 
+                {
+                    foreach (string value in logDataToWrite)
+                    {
+                        try
+                        {
+                            using (FileStream fileAppend = File.Open(logFileLocation, FileMode.Append))//write to file
+                            {
+                                using (StreamWriter output = new StreamWriter(fileAppend))
+                                {
+                                    output.WriteLine(value);
+                                }
+                            }
+                            logDataToWrite.TryDequeue(out string no);
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                }
             }
         }
     }

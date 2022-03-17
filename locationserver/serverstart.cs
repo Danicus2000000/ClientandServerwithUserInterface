@@ -18,11 +18,6 @@ namespace locationserver
             HTTP10,
             HTTP11
         }
-        private static string logFileLocation = "";
-        private static async Task writeLogFile(string contents) 
-        {
-
-        }
         /// <summary>
         /// Using the context of the request the type of request is figured out
         /// </summary>
@@ -44,8 +39,7 @@ namespace locationserver
             }
             return requestType.whois;
         }
-
-        private static string handleRequest(Dictionary<string, string> storedData, requestType requestType, string data)
+        private static string handleRequest(ConcurrentDictionary<string, string> storedData, requestType requestType, string data)
         {
             data = data.Replace("  ", " ");
             string[] splitData = data.Split(" ");
@@ -152,9 +146,8 @@ namespace locationserver
         /// <param name="log">The log file being used to log server use</param>
         /// <param name="database">The database being used for storedata</param>
         /// <param name="timeout">The timeout to be used</param>
-        public void run(Socket socket,Dictionary<string,string> storedData, string log, int timeout,ConcurrentQueue<string> loglist) 
+        public void run(Socket socket,ConcurrentDictionary<string,string> storedData, string log, int timeout,ConcurrentQueue<string> loglist) 
         {
-            logFileLocation = log;
             NetworkStream socketStream = new NetworkStream(socket);
             Console.WriteLine("Connection Recieved");
             try
