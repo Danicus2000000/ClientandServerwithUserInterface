@@ -5,7 +5,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections.Concurrent;
-using System.Windows.Forms;
+
 namespace locationserver
 {
     class locationserver
@@ -37,9 +37,7 @@ namespace locationserver
                             timeout = Convert.ToInt32(args[i + 1]);
                             break;
                         case "-w"://if -w used run GUI
-                            Application.EnableVisualStyles();
-                            Application.SetCompatibleTextRenderingDefault(false);
-                            Application.Run();
+                            //make winform
                             break;
                     }
                 }
