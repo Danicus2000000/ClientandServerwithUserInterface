@@ -2,7 +2,7 @@
   "profiles": {
     "locationserver": {
       "commandName": "Project",
-      "commandLineArgs": "-w"
+      "commandLineArgs": "-f G:\\NetworkingAndUserInterfaceDesign\\ClientandServerwithUserInterface\\locationserver\\bin\\Debug\\netcoreapp3.1\\test.txt"
     }
   }
 }

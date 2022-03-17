@@ -15,7 +15,6 @@ namespace locationserver
         private static int timeout = 1000;
         private static ConcurrentDictionary<string, string> storeddata = new ConcurrentDictionary<string, string>();//stores name,location pairs
         private static ConcurrentQueue<string> logDataToWrite= new ConcurrentQueue<string>();
-        private static bool useGUI=false;
         /// <summary>
         /// Parses any arguments given to fill out required data
         /// </summary>
@@ -38,7 +37,9 @@ namespace locationserver
                             timeout = Convert.ToInt32(args[i + 1]);
                             break;
                         case "-w"://if -w used run GUI
-                            useGUI = true;
+                            Application.EnableVisualStyles();
+                            Application.SetCompatibleTextRenderingDefault(false);
+                            Application.Run();
                             break;
                     }
                 }
@@ -49,12 +50,6 @@ namespace locationserver
                 Console.WriteLine("Will run with no log file and no database instead!");
                 logFileLocation = "";
                 serverDatabaseLocation = "";
-            }
-            if (useGUI) 
-            {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new locationserverGUI(logFileLocation,serverDatabaseLocation,timeout));
             }
         }
         /// <summary>

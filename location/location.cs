@@ -232,7 +232,7 @@ namespace location
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new locationGUI());
+                Application.Run();
                 while (args.Length == 0)
                 {
                     Console.Write("No arguments given please enter request: ");
