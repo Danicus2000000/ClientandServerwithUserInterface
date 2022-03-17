@@ -10,10 +10,10 @@ namespace locationserver
 {
     class locationserver
     {
-        private static string logFileLocation = Directory.GetCurrentDirectory()+"\\logfile.txt";
+        private static string logFileLocation = Directory.GetCurrentDirectory()+"\\logfile.txt";//filenames are all logical
         private static string serverDatabaseLocation = "";
         private static int timeout = 1000;
-        private static ConcurrentDictionary<string, string> storeddata = new ConcurrentDictionary<string, string>();
+        private static ConcurrentDictionary<string, string> storeddata = new ConcurrentDictionary<string, string>();//stores name,location pairs
         private static ConcurrentQueue<string> logDataToWrite= new ConcurrentQueue<string>();
         /// <summary>
         /// Parses any arguments given to fill out required data
@@ -27,16 +27,16 @@ namespace locationserver
                 {
                     switch (args[i])
                     {
-                        case "-l":
+                        case "-l"://if log file specified overwrite default path
                             logFileLocation = args[i + 1];
                             break;
-                        case "-f":
+                        case "-f"://if database file specified store the path
                             serverDatabaseLocation = args[i + 1];
                             break;
-                        case "-t":
+                        case "-t"://if timeout specified store it
                             timeout = Convert.ToInt32(args[i + 1]);
                             break;
-                        case "-w":
+                        case "-w"://if -w used run GUI
                             //make winform
                             break;
                     }
@@ -64,6 +64,15 @@ namespace locationserver
                         File.Create(logFileLocation);
                     }
                 }
+            }
+            catch (Exception)//if the creation fails the path is invalid default to null paths
+            {
+                Console.WriteLine("The selected path for the log file was invalid or inaccessable");
+                Console.WriteLine("Will run with no log file instead!");
+                logFileLocation = "";
+            }
+            try
+            {
                 if (serverDatabaseLocation != "")
                 {
                     if (!File.Exists(serverDatabaseLocation))
@@ -72,57 +81,59 @@ namespace locationserver
                     }
                 }
             }
-            catch (Exception)//if the creation fails the path is invalid
+            catch (Exception)//if the creation fails the path is invalid default to null paths
             {
-                Console.WriteLine("The selected path for the source or log file was invalid or inaccessable");
-                Console.WriteLine("Will run with no log file and no database instead!");
-                logFileLocation = "";
+                Console.WriteLine("The selected path for the database was invalid or inaccessable");
+                Console.WriteLine("Will run with no database instead!");
                 serverDatabaseLocation = "";
             }
         }
-        public static void runServer()
+        private static void readDatabase()
         {
-            validateFileLocations();
-            TcpListener listener;
-            if (serverDatabaseLocation != "")//reads in any available data to the datastore
+            try
             {
-                try
+                string[] dataToStore;//stores database as set of lines
+                using (FileStream fileAppend = File.Open(serverDatabaseLocation, FileMode.Open))//read database file
                 {
-                    //string[] dataToStore = File.ReadAllLines(serverDatabaseLocation);
-                    string[] dataToStore;
-                    using (FileStream fileAppend = File.Open(serverDatabaseLocation, FileMode.Open))//write to file
+                    using (StreamReader output = new StreamReader(fileAppend))
                     {
-                        using (StreamReader output = new StreamReader(fileAppend))
-                        {
-                            dataToStore = output.ReadToEnd().Split("\n");
-                        }
-                    }
-                    foreach (string add in dataToStore)
-                    {
-                        if (add != "")
-                        {
-                            string[] parts = add.Split(" ");
-                            string set = "";
-                            for (int i = 1; i < parts.Length; i++)
-                            {
-                                set += parts[i] + " ";
-                            }
-                            storeddata[parts[0]] = set.Substring(0, set.Length - 1);
-                        }
+                        dataToStore = output.ReadToEnd().Split("\n");
                     }
                 }
-                catch (Exception e) 
+                foreach (string add in dataToStore)//writes data to storage concurent dictionary
                 {
-                    Console.WriteLine("Database file was not formated correctly, using null dataset instead");
-                    Console.WriteLine(e.Message);
-                    storeddata = new ConcurrentDictionary<string, string>();
+                    if (add != "")
+                    {
+                        string[] parts = add.Split(" ");
+                        string set = "";
+                        for (int i = 1; i < parts.Length; i++)
+                        {
+                            set += parts[i] + " ";
+                        }
+                        storeddata[parts[0]] = set.Substring(0, set.Length - 1);
+                    }
                 }
             }
-            if (logFileLocation != "") 
+            catch (Exception)
+            {
+                Console.WriteLine("Database file was not formated correctly, using null dataset instead");
+                storeddata = new ConcurrentDictionary<string, string>();
+            }
+        }
+
+        private static void runServer()
+        {
+            validateFileLocations();//check file locations
+            if (serverDatabaseLocation != "") 
+            {
+                readDatabase();//attempts to read database file
+            }
+            if (logFileLocation != "") //if there is a log file start a thread to deal with log file writting
             {
                 Thread log = new Thread(() => logStuff());
                 log.Start();
             }
+            TcpListener listener;
             while (true)
             {
                 try

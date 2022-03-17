@@ -82,7 +82,7 @@ namespace location
                             break;
                     }
                 }
-                if (locationID!="") 
+                if (locationID!="") //if location id is not empty remove the last space
                 {
                     locationID = locationID.Substring(0, locationID.Length-1);
                 }
@@ -191,7 +191,7 @@ namespace location
                 else//if it is a modify request
                 {
                     result = personID + " location changed to be " + locationID + "\r\n";//structure in that style
-                    //if (personID == "GET" && locationID == "/636948") Lab 4 issue
+                    //if (personID == "GET" && locationID == "/636948") Lab 4 issue workaround
                     //{
                     //    result = "Error: Not Found";
                     //}
@@ -240,7 +240,7 @@ namespace location
             string requestFullFormat = formatRequest();//build requests
             try
             {
-                Console.WriteLine(handleRequest(requestFullFormat));
+                Console.WriteLine(handleRequest(requestFullFormat));//sends and outputs result of request
             }
             catch (IOException) 
             {
