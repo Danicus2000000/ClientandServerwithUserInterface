@@ -229,6 +229,7 @@ namespace location
         {
             if (args.Length == 0)//if no arguments are given ask for them
             {
+                //make winform
                 while (args.Length == 0)
                 {
                     Console.Write("No arguments given please enter request: ");

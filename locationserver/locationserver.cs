@@ -36,6 +36,9 @@ namespace locationserver
                         case "-t":
                             timeout = Convert.ToInt32(args[i + 1]);
                             break;
+                        case "-w":
+                            //make winform
+                            break;
                     }
                 }
             }
