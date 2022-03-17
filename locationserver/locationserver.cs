@@ -133,7 +133,7 @@ namespace locationserver
                 Thread log = new Thread(() => logStuff());
                 log.Start();
             }
-            TcpListener listener;
+            TcpListener listener;//start server and begin thread each time a request comes in
             while (true)
             {
                 try
@@ -157,11 +157,11 @@ namespace locationserver
         }
         static void Main(string[] args)
         {
-            AppDomain.CurrentDomain.ProcessExit+=new EventHandler(OnProcessExit);
+            AppDomain.CurrentDomain.ProcessExit+=new EventHandler(OnProcessExit);//registers exit event
             parseArgs(args);
             runServer();
         }
-        static void OnProcessExit(object sender,EventArgs e) 
+        static void OnProcessExit(object sender,EventArgs e) //writes database file on exit
         {
             if (serverDatabaseLocation != "" && storeddata.Count!=0) 
             {
@@ -174,7 +174,7 @@ namespace locationserver
                 File.WriteAllText(serverDatabaseLocation,result);
             }
         }
-        static void logStuff() 
+        static void logStuff() //used on a thread that atempts to continually write info out to the log
         {
             while (true) 
             {

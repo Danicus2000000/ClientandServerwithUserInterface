@@ -23,7 +23,7 @@ namespace locationserver
         /// </summary>
         /// <param name="request">The Request sent by the client</param>
         /// <returns>The Type of request to be handled</returns>
-        private static requestType getRequestType(string request) 
+        private static requestType getRequestType(string request) //searches for key identifiers that signify each request type
         {
             if (request.Contains("HTTP/1.1") && (request.Contains("GET /?name=") || request.Contains("POST / HTTP/1.1\r\nHost:"))) 
             {
@@ -41,7 +41,7 @@ namespace locationserver
         }
         private static string handleRequest(ConcurrentDictionary<string, string> storedData, requestType requestType, string data)
         {
-            data = data.Replace("  ", " ");
+            data = data.Replace("  ", " ");//handle data based on request type
             string[] splitData = data.Split(" ");
             switch (requestType) 
             {
@@ -123,7 +123,7 @@ namespace locationserver
                         }
                         catch (Exception) 
                         {
-                            return "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n";
+                            return "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n";//string formatting allows for complience with standards
                         }
                     }
                     else if (splitData[0] == "POST") 
@@ -188,7 +188,7 @@ namespace locationserver
             {
                 Console.WriteLine("The thread timed out!");
             }
-            finally
+            finally//close socket on request complete
             {
                 socketStream.Close();
                 socket.Close();
