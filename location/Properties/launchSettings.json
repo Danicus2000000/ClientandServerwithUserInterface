@@ -1,8 +1,7 @@
 {
   "profiles": {
     "location": {
-      "commandName": "Project",
-      "commandLineArgs": "636948 hello -d -h1"
+      "commandName": "Project"
     }
   }
 }
