@@ -1,25 +1,25 @@
 ﻿using System;
-using System.Threading;
-using System.Net.Sockets;
-using System.Net;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace locationserver
 {
-    class locationserver
+    class LocationServer
     {
-        private static string logFileLocation = Directory.GetCurrentDirectory()+"\\logfile.txt";//filenames are all logical
+        private static string logFileLocation = Directory.GetCurrentDirectory() + "\\logfile.txt";//filenames are all logical
         private static string serverDatabaseLocation = "";
         private static int timeout = 1000;
-        private static ConcurrentDictionary<string, string> storeddata = new ConcurrentDictionary<string, string>();//stores name,location pairs
-        private static ConcurrentQueue<string> logDataToWrite= new ConcurrentQueue<string>();
+        private static ConcurrentDictionary<string, string> storeddata = new();//stores name,location pairs
+        private readonly static ConcurrentQueue<string> logDataToWrite = new();
         /// <summary>
         /// Parses any arguments given to fill out required data
         /// </summary>
         /// <param name="args">The arguments handed either at the command line or via user input</param>
-        static void parseArgs(string[] args)
+        static void ParseArgs(string[] args)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace locationserver
         /// <summary>
         /// Checks to ensure that the log file and save file for interal server details are pointed at an accessable location
         /// </summary>
-        static void validateFileLocations()
+        static void ValidateFileLocations()
         {
             try
             {
@@ -88,17 +88,15 @@ namespace locationserver
                 serverDatabaseLocation = "";
             }
         }
-        private static void readDatabase()
+        private static void ReadDatabase()
         {
             try
             {
                 string[] dataToStore;//stores database as set of lines
                 using (FileStream fileAppend = File.Open(serverDatabaseLocation, FileMode.Open))//read database file
                 {
-                    using (StreamReader output = new StreamReader(fileAppend))
-                    {
-                        dataToStore = output.ReadToEnd().Split("\n");
-                    }
+                    using StreamReader output = new(fileAppend);
+                    dataToStore = output.ReadToEnd().Split("\n");
                 }
                 foreach (string add in dataToStore)//writes data to storage concurent dictionary
                 {
@@ -110,7 +108,7 @@ namespace locationserver
                         {
                             set += parts[i] + " ";
                         }
-                        storeddata[parts[0]] = set.Substring(0, set.Length - 1);
+                        storeddata[parts[0]] = set[..^1];
                     }
                 }
             }
@@ -121,16 +119,16 @@ namespace locationserver
             }
         }
 
-        private static void runServer()
+        private static void RunServer()
         {
-            validateFileLocations();//check file locations
-            if (serverDatabaseLocation != "") 
+            ValidateFileLocations();//check file locations
+            if (serverDatabaseLocation != "")
             {
-                readDatabase();//attempts to read database file
+                ReadDatabase();//attempts to read database file
             }
             if (logFileLocation != "") //if there is a log file start a thread to deal with log file writting
             {
-                Thread log = new Thread(() => logStuff());
+                Thread log = new(() => LogStuff());
                 log.Start();
             }
             TcpListener listener;//start server and begin thread each time a request comes in
@@ -138,15 +136,15 @@ namespace locationserver
             {
                 try
                 {
-                    listener = new TcpListener(IPAddress.Any,43);
+                    listener = new TcpListener(IPAddress.Any, 43);
                     listener.Start();
                     while (true)
                     {
                         Socket connection = listener.AcceptSocket();
-                        serverstart threadgen = new serverstart();
-                        Thread threadInitialise = new Thread(() => threadgen.run(connection,storeddata,logFileLocation,timeout,logDataToWrite));
+                        ServerStart threadgen = new();
+                        Thread threadInitialise = new(() => threadgen.Run(connection, storeddata, logFileLocation, timeout, logDataToWrite));
                         threadInitialise.Start();
-                        
+
                     }
                 }
                 catch
@@ -157,28 +155,28 @@ namespace locationserver
         }
         static void Main(string[] args)
         {
-            AppDomain.CurrentDomain.ProcessExit+=new EventHandler(OnProcessExit);//registers exit event
-            parseArgs(args);
-            runServer();
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);//registers exit event
+            ParseArgs(args);
+            RunServer();
         }
-        static void OnProcessExit(object sender,EventArgs e) //writes database file on exit
+        static void OnProcessExit(object sender, EventArgs e) //writes database file on exit
         {
-            if (serverDatabaseLocation != "" && storeddata.Count!=0) 
+            if (serverDatabaseLocation != "" && !storeddata.IsEmpty)
             {
                 string result = "";
                 foreach (KeyValuePair<string, string> set in storeddata)
                 {
-                    result+=set.Key + " " + set.Value + "\n";
+                    result += set.Key + " " + set.Value + "\n";
                 }
-                result=result.Substring(0,result.Length-1);
-                File.WriteAllText(serverDatabaseLocation,result);
+                result = result[..^1];
+                File.WriteAllText(serverDatabaseLocation, result);
             }
         }
-        static void logStuff() //used on a thread that atempts to continually write info out to the log
+        static void LogStuff() //used on a thread that atempts to continually write info out to the log
         {
-            while (true) 
+            while (true)
             {
-                if (logDataToWrite.Count != 0) 
+                if (!logDataToWrite.IsEmpty)
                 {
                     foreach (string value in logDataToWrite)
                     {
@@ -186,10 +184,8 @@ namespace locationserver
                         {
                             using (FileStream fileAppend = File.Open(logFileLocation, FileMode.Append))//write to file
                             {
-                                using (StreamWriter output = new StreamWriter(fileAppend))
-                                {
-                                    output.WriteLine(value);
-                                }
+                                using StreamWriter output = new(fileAppend);
+                                output.WriteLine(value);
                             }
                             logDataToWrite.TryDequeue(out string no);
                         }

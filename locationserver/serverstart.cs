@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.IO;
-using System.Threading;
-using System.Net;
-using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
 
 namespace locationserver
 {
-    class serverstart
+    class ServerStart
     {
-        enum requestType//the enum used to represent which protocol is in use
+        enum RequestType//the enum used to represent which protocol is in use
         {
             whois,
             HTTP09,
@@ -23,35 +20,35 @@ namespace locationserver
         /// </summary>
         /// <param name="request">The Request sent by the client</param>
         /// <returns>The Type of request to be handled</returns>
-        private static requestType getRequestType(string request) //searches for key identifiers that signify each request type
+        private static RequestType GetRequestType(string request) //searches for key identifiers that signify each request type
         {
-            if (request.Contains("HTTP/1.1") && (request.Contains("GET /?name=") || request.Contains("POST / HTTP/1.1\r\nHost:"))) 
+            if (request.Contains("HTTP/1.1") && (request.Contains("GET /?name=") || request.Contains("POST / HTTP/1.1\r\nHost:")))
             {
-                return requestType.HTTP11;
+                return RequestType.HTTP11;
             }
-            else if (request.Contains("HTTP/1.0") && (request.Contains("GET /?") || request.Contains("POST /"))) 
+            else if (request.Contains("HTTP/1.0") && (request.Contains("GET /?") || request.Contains("POST /")))
             {
-                return requestType.HTTP10;
+                return RequestType.HTTP10;
             }
-            else if((request.Contains("GET /") || (request.Contains("PUT /") && request.Contains("\r\n\r\n"))) && !request.Contains("GET /?"))
+            else if ((request.Contains("GET /") || (request.Contains("PUT /") && request.Contains("\r\n\r\n"))) && !request.Contains("GET /?"))
             {
-                return requestType.HTTP09;
+                return RequestType.HTTP09;
             }
-            return requestType.whois;
+            return RequestType.whois;
         }
-        private static string handleRequest(ConcurrentDictionary<string, string> storedData, requestType requestType, string data)
+        private static string HandleRequest(ConcurrentDictionary<string, string> storedData, RequestType requestType, string data)
         {
             data = data.Replace("  ", " ");//handle data based on request type
             string[] splitData = data.Split(" ");
-            switch (requestType) 
+            switch (requestType)
             {
-                case requestType.whois:
+                case RequestType.whois:
                     Console.WriteLine("Request Type: whois");
                     if (splitData.Length == 1)
                     {
                         try
                         {
-                            return storedData[data.Replace("\r\n","")] + "\r\n";
+                            return storedData[data.Replace("\r\n", "")] + "\r\n";
                         }
                         catch (Exception)
                         {
@@ -60,77 +57,77 @@ namespace locationserver
                     }
                     else
                     {
-                        string personID=splitData[0];
-                        string locationID = data.Substring(personID.Length+1);
+                        string personID = splitData[0];
+                        string locationID = data[(personID.Length + 1)..];
                         storedData[personID] = locationID.Replace("\r\n", "");
                         return "OK\r\n";
                     }
-                case requestType.HTTP09:
+                case RequestType.HTTP09:
                     Console.WriteLine("Request Type: HTTP 0.9");
-                    if (splitData[0] == "GET") 
+                    if (splitData[0] == "GET")
                     {
                         try
                         {
-                            string personID = splitData[1].Substring(1).Replace("\r\n", "");
+                            string personID = splitData[1][1..].Replace("\r\n", "");
                             string locationID = storedData[personID];
                             return "HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n" + locationID + "\r\n";
                         }
-                        catch (Exception) 
+                        catch (Exception)
                         {
                             return "HTTP/0.9 404 Not Found\r\nContent-Type: text/plain\r\n\r\n";
                         }
                     }
-                    else if (splitData[0] == "PUT") 
+                    else if (splitData[0] == "PUT")
                     {
-                        string personID =data.Split("\r\n\r\n")[0].Substring(5);
-                        string locationID = data.Split("\r\n\r\n")[1].Replace("\r\n","");//removes all newline operators and name from the output and ensures location can have spaces in
+                        string personID = data.Split("\r\n\r\n")[0][5..];
+                        string locationID = data.Split("\r\n\r\n")[1].Replace("\r\n", "");//removes all newline operators and name from the output and ensures location can have spaces in
                         storedData[personID] = locationID;
                         return "HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n";
                     }
                     break;
-                case requestType.HTTP10:
+                case RequestType.HTTP10:
                     Console.WriteLine("Request Type: HTTP 1.0");
-                    if (splitData[0] == "GET") 
+                    if (splitData[0] == "GET")
                     {
                         try
                         {
-                            string personID = splitData[1].Substring(2).Replace("\r\n","");
-                            string locationID= storedData[personID];
+                            string personID = splitData[1][2..].Replace("\r\n", "");
+                            string locationID = storedData[personID];
                             return "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n" + locationID + "\r\n";
                         }
-                        catch (Exception) 
+                        catch (Exception)
                         {
                             return "HTTP/1.0 404 Not Found\r\nContent-Type: text/plain\r\n\r\n";
                         }
                     }
-                    else if (splitData[0] == "POST") 
+                    else if (splitData[0] == "POST")
                     {
-                        string personID=splitData[1].Substring(1).Replace("\r\n","");
+                        string personID = splitData[1][1..].Replace("\r\n", "");
                         string locationID = data.Split("\r\n")[3];
                         storedData[personID] = locationID;
                         return "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n";
                     }
                     break;
-                case requestType.HTTP11:
+                case RequestType.HTTP11:
                     Console.WriteLine("Request Type: HTTP 1.1");
-                    if (splitData[0] == "GET") 
+                    if (splitData[0] == "GET")
                     {
                         try
                         {
-                            string personID = splitData[1].Substring(7);
-                            string locationID= storedData[personID];
+                            string personID = splitData[1][7..];
+                            string locationID = storedData[personID];
                             return "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n" + locationID + "\r\n";
                         }
-                        catch (Exception) 
+                        catch (Exception)
                         {
                             return "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n";//string formatting allows for complience with standards
                         }
                     }
-                    else if (splitData[0] == "POST") 
+                    else if (splitData[0] == "POST")
                     {
                         string[] dataLines = data.Split("\r\n");
-                        string personID = dataLines[4].Substring(5).Split("&")[0];
-                        string locationID = dataLines[4].Substring(15+personID.Length);
+                        string personID = dataLines[4][5..].Split("&")[0];
+                        string locationID = dataLines[4][(15 + personID.Length)..];
                         storedData[personID] = locationID;
                         return "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
                     }
@@ -146,9 +143,9 @@ namespace locationserver
         /// <param name="log">The log file being used to log server use</param>
         /// <param name="database">The database being used for storedata</param>
         /// <param name="timeout">The timeout to be used</param>
-        public void run(Socket socket,ConcurrentDictionary<string,string> storedData, string log, int timeout,ConcurrentQueue<string> loglist) 
+        public void Run(Socket socket, ConcurrentDictionary<string, string> storedData, string log, int timeout, ConcurrentQueue<string> loglist)
         {
-            NetworkStream socketStream = new NetworkStream(socket);
+            NetworkStream socketStream = new(socket);
             Console.WriteLine("Connection Recieved");
             try
             {
@@ -156,10 +153,10 @@ namespace locationserver
                 socketStream.WriteTimeout = timeout;
                 Byte[] bytes = new Byte[256];//buffer for data
                 string data = "";
-                StreamReader sr = new StreamReader(socketStream);//recieve data
+                StreamReader sr = new(socketStream);//recieve data
                 try
                 {
-                    while (sr.Peek()>=0)
+                    while (sr.Peek() >= 0)
                     {
                         data += (char)sr.Read();
                     }
@@ -171,15 +168,15 @@ namespace locationserver
                         Console.WriteLine("The request timed out!");
                     }
                 }
-                Console.WriteLine("Server recieved: \"" + data.Replace("\r","\\r").Replace("\n","\\n") + "\"");//respond to request
-                requestType requestType = getRequestType(data);
-                StreamWriter write = new StreamWriter(socketStream);
-                string responseMessage = handleRequest(storedData, requestType, data);
+                Console.WriteLine("Server recieved: \"" + data.Replace("\r", "\\r").Replace("\n", "\\n") + "\"");//respond to request
+                RequestType requestType = GetRequestType(data);
+                StreamWriter write = new(socketStream);
+                string responseMessage = HandleRequest(storedData, requestType, data);
                 write.Write(responseMessage);
                 write.Flush();
                 sr.Dispose();
                 write.Dispose();
-                Console.WriteLine("server sent: \"" + responseMessage.Replace("\r","\\r").Replace("\n","\\n") + "\"");//output to server console
+                Console.WriteLine("server sent: \"" + responseMessage.Replace("\r", "\\r").Replace("\n", "\\n") + "\"");//output to server console
                 string formatData = data.Replace("\n", "\\n").Replace("\r", "\\r");
                 string formatResponse = responseMessage.Replace("\n", "\\n").Replace("\r", "\\r");
                 loglist.Enqueue((socket.RemoteEndPoint as IPEndPoint).Address.ToString() + " - - [" + DateTime.Now + "] \"" + formatData + "\" " + formatResponse);//data to write

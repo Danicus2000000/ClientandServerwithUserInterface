@@ -1,18 +1,18 @@
 ﻿using System;
-using System.Net.Sockets;
 using System.IO;
+using System.Net.Sockets;
 namespace location
 {
-    class location
+    class Location
     {
-        enum requestType//the enum used to represent which protocol is in use
+        enum RequestType//the enum used to represent which protocol is in use
         {
             whois,
             HTTP09,
             HTTP10,
             HTTP11
         }
-        private static requestType request = requestType.whois;//all changable variable used throughout names are self explanitory
+        private static RequestType request = RequestType.whois;//all changable variable used throughout names are self explanitory
         private static string host = "whois.net.dcs.hull.ac.uk";
         private static int timeout = 1000;
         private static int port = 43;
@@ -24,7 +24,7 @@ namespace location
         /// Parses any arguments given to fill out required data
         /// </summary>
         /// <param name="args">The arguments handed either at the command line or via user input</param>
-        static void parseArgs(string[] args)
+        static void ParseArgs(string[] args)
         {
             try
             {
@@ -33,13 +33,13 @@ namespace location
                     switch (args[i])
                     {
                         case "-h1"://if a HTTP protocol is specified
-                            request = requestType.HTTP11;
+                            request = RequestType.HTTP11;
                             break;
                         case "-h0":
-                            request = requestType.HTTP10;
+                            request = RequestType.HTTP10;
                             break;
                         case "-h9":
-                            request = requestType.HTTP09;
+                            request = RequestType.HTTP09;
                             break;
                         case "-h"://if alternate host is specified
                             host = args[i + 1];
@@ -64,7 +64,7 @@ namespace location
                                     }
                                     else//if location id is empty fill it
                                     {
-                                        locationID += args[i]+" ";
+                                        locationID += args[i] + " ";
                                     }
                                 }
                             }
@@ -76,15 +76,15 @@ namespace location
                                 }
                                 else//if location id is empty fill it
                                 {
-                                    locationID += args[i]+" ";
+                                    locationID += args[i] + " ";
                                 }
                             }
                             break;
                     }
                 }
-                if (locationID!="") //if location id is not empty remove the last space
+                if (locationID != "") //if location id is not empty remove the last space
                 {
-                    locationID = locationID.Substring(0, locationID.Length-1);
+                    locationID = locationID[..^1];
                 }
             }
             catch (Exception)//Exceptions can only be caused by invalid argument use so the program outputs an error and exits
@@ -97,19 +97,19 @@ namespace location
         /// Takes in the context of the request and returns it in a format the server will be able to manage
         /// </summary>
         /// <returns>A string formatted based on the set protocol</returns>
-        static string formatRequest() 
+        static string FormatRequest()
         {
             if (locationID == "")//if there is a no location ID we are requesting data
             {
                 switch (request)//based on request type structure as required
                 {
-                    case requestType.whois:
+                    case RequestType.whois:
                         return personID + "\r\n";
-                    case requestType.HTTP09:
+                    case RequestType.HTTP09:
                         return "GET /" + personID + "\r\n";
-                    case requestType.HTTP10:
+                    case RequestType.HTTP10:
                         return "GET /?" + personID + " HTTP/1.0\r\n\r\n";
-                    case requestType.HTTP11:
+                    case RequestType.HTTP11:
                         return "GET /?name=" + personID + " HTTP/1.1\r\nHost: " + host + "\r\n\r\n";
                 }
             }
@@ -117,13 +117,13 @@ namespace location
             {
                 switch (request)//based on request type structure as required
                 {
-                    case requestType.whois:
+                    case RequestType.whois:
                         return personID + " " + locationID + "\r\n";
-                    case requestType.HTTP09:
+                    case RequestType.HTTP09:
                         return "PUT /" + personID + "\r\n\r\n" + locationID + "\r\n";
-                    case requestType.HTTP10:
+                    case RequestType.HTTP10:
                         return "POST /" + personID + " HTTP/1.0\r\nContent-Length: " + locationID.Length + "\r\n\r\n" + locationID;
-                    case requestType.HTTP11:
+                    case RequestType.HTTP11:
                         string body = "name=" + personID + "&location=" + locationID;
                         return "POST / HTTP/1.1\r\nHost: " + host + "\r\nContent-Length: " + body.Length + "\r\n\r\n" + body;
                 }
@@ -136,11 +136,13 @@ namespace location
         /// </summary>
         /// <param name="requestFullFormat">The fully formatted request to send the server</param>
         /// <returns>The response from the server formatted as required</returns>
-        static string handleRequest(string requestFullFormat)
+        static string HandleRequest(string requestFullFormat)
         {
-            TcpClient client = new TcpClient();//intialise client and timeout and attempt to connect
-            client.ReceiveTimeout = timeout;
-            client.SendTimeout = timeout;
+            TcpClient client = new()
+            {
+                ReceiveTimeout = timeout,
+                SendTimeout = timeout
+            };//intialise client and timeout and attempt to connect
             try
             {
                 client.Connect(host, port);
@@ -150,15 +152,15 @@ namespace location
                 Console.WriteLine("The Client was unable to connect");
                 Environment.Exit(-69);
             }
-            StreamWriter sw = new StreamWriter(client.GetStream());
+            StreamWriter sw = new(client.GetStream());
             sw.Write(requestFullFormat);
             sw.Flush();//writes the request to the server and then sends it
             if (debugMode)//if debug show full input
             {
-                Console.WriteLine("Request sent: "+requestFullFormat.Replace("\r","\\r").Replace("\n","\\n"));
+                Console.WriteLine("Request sent: " + requestFullFormat.Replace("\r", "\\r").Replace("\n", "\\n"));
                 Console.WriteLine("Request Format: " + request.ToString());
             }
-            StreamReader sr = new StreamReader(client.GetStream());//Get the response from the server
+            StreamReader sr = new(client.GetStream());//Get the response from the server
             string response = "";
             try
             {
@@ -177,11 +179,11 @@ namespace location
             }
             if (debugMode)//if debug show true output
             {
-                Console.WriteLine("True Request response: "+response.Replace("\r","\\r").Replace("\n","\\n"));
+                Console.WriteLine("True Request response: " + response.Replace("\r", "\\r").Replace("\n", "\\n"));
                 Console.WriteLine();
             }
-            string result = "";
-            if (request == requestType.whois)//if we are dealing with a whois request
+            string result;
+            if (request == RequestType.whois)//if we are dealing with a whois request
             {
                 if (locationID == "")//if it is a get request
                 {
@@ -213,12 +215,12 @@ namespace location
                 }
                 else if (lineresponse[0] == "HTTP/0.9 404 Not Found" || lineresponse[0] == "HTTP/1.0 404 Not Found" || lineresponse[0] == "HTTP/1.1 404 Not Found")//if the data is not found
                 {
-                    result="Error: Not Found";
+                    result = "Error: Not Found";
                 }
                 else
                 {
                     string trueresponse = response.Split("\r\n\r\n")[1];//in order to structure correctly must remove some unrequired data from the response
-                    result=personID + " is " + trueresponse.Substring(0, trueresponse.Length - 2);//structure in that style
+                    result = string.Concat(personID, " is ", trueresponse.AsSpan(0, trueresponse.Length - 2));//structure in that style
                 }
             }
             return result;//return result to be outputted by main program
@@ -236,13 +238,13 @@ namespace location
                     args = Console.ReadLine().Split(" ");
                 }
             }
-            parseArgs(args);//parse the arguments given
-            string requestFullFormat = formatRequest();//build requests
+            ParseArgs(args);//parse the arguments given
+            string requestFullFormat = FormatRequest();//build requests
             try
             {
-                Console.WriteLine(handleRequest(requestFullFormat));//sends and outputs result of request
+                Console.WriteLine(HandleRequest(requestFullFormat));//sends and outputs result of request
             }
-            catch (IOException) 
+            catch (IOException)
             {
                 Console.WriteLine("The Client Timed out!");
             }
