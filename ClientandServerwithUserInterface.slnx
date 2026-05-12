@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="location/location.csproj" />
+  <Project Path="locationserver/locationserver.csproj" />
+</Solution>
